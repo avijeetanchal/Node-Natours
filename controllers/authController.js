@@ -12,17 +12,18 @@ const signToken = (id) => {
   });
 };
 
-const createSendToken = (user, statusCode, res) => {
+const createSendToken = (user, statusCode, req, res) => {
   const token = signToken(user._id); // creating JWT signed token
-  const cookieOptions = {
+
+  // if (process.env.NODE_ENV === 'production') cookieOptions.secure = true; // https
+
+  res.cookie('jwt', token, {
     expires: new Date(
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000,
     ),
     httpOnly: true, // client wont be able to change
-  };
-  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true; // https
-
-  res.cookie('jwt', token, cookieOptions); /// creating cookie field in req onj
+    secure: req.secure || req.headers('x-forwarded-proto') === 'https',
+  }); /// creating cookie field in req onj
 
   // Remove password from output while signUp res
   user.password = undefined;
@@ -48,7 +49,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   // console.log('env url =>', url);
   await new Email(newUser, url).sendWelcome();
 
-  createSendToken(newUser, 201, res);
+  createSendToken(newUser, 201, req, res);
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -67,7 +68,7 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   // 3) If everything ok, send token to client, JWT token
-  createSendToken(user, 200, res);
+  createSendToken(user, 200, req, res);
 });
 
 exports.logout = (req, res) => {
@@ -231,7 +232,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
 
   // 3) Update changedPasswordAt property for the user
   // 4) Log the user in, send JWT
-  createSendToken(user, 200, res);
+  createSendToken(user, 200, req, res);
 });
 
 exports.updatePassword = catchAsync(async (req, res, next) => {
@@ -250,5 +251,5 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   // User.findByIdAndUpdate will NOT work as intended!
 
   // 4) Log user in, send JWT
-  createSendToken(user, 200, res);
+  createSendToken(user, 200, req, res);
 });

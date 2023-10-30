@@ -20,6 +20,9 @@ const viewRouter = require('./routes/viewRoutes');
 // start express app
 const app = express();
 
+//trust proxy as heroku modifies the incoming req before it hits our app.
+app.enable('trust proxy');
+
 app.set('view engine', 'pug'); /// setting up the template engine for server side render
 
 app.set('views', path.join(__dirname, 'views')); // views folder path
