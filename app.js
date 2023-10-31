@@ -8,6 +8,7 @@ const xss = require('xss-clean');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
 const compression = require('compression');
+const cors = require('cors');
 
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
@@ -29,6 +30,19 @@ app.set('views', path.join(__dirname, 'views')); // views folder path
 // path.join -> ensures / between the dirs
 
 // 1) GLOBAL MIDDLEWARES
+// implement cors for all Endpoint else you can do it for respective api
+app.use(cors()); // get and post req only -> simple req
+// access-control-allow-origin to * -> no matter from where req comes
+// app.natuours.io - natuours.com // diff front end hosting
+// app.use(
+//   cors({
+//     origin: 'https://www.natuours.com',
+//   }),
+// );
+
+// non simple req -> pathc put delete, sending cookies
+app.options('*', cors()); // in place of * we can have the specific endpoint
+
 // Serving static files
 app.use(express.static(path.join(__dirname, 'public')));
 
